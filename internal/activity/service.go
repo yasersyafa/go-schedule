@@ -8,6 +8,10 @@ import (
 	"github.com/google/uuid"
 )
 
+const (
+	dayStart = "00:00:00"
+	dayEnd = "23:59:59"
+)
 var ErrOverlap = errors.New("activity overlaps with an existing one on this day.")
 
 type Service struct {
@@ -20,6 +24,31 @@ func NewService(repo *Repository) *Service {
 
 func (s *Service) ListAll(ctx context.Context) ([]Activity, error) {
 	return s.repo.ListAll(ctx)
+}
+
+func (s *Service) ListFreeSlots(ctx context.Context, day string) ([]FreeSlot, error) {
+	activities, err := s.repo.ListByDay(ctx, day)
+	if err != nil {
+		return nil, fmt.Errorf("list activities for free slots: %w", err)
+	}
+
+	var freeSlots []FreeSlot
+	cursor := dayStart
+
+	for _, a := range activities {
+		if a.StartTime > cursor {
+			freeSlots = append(freeSlots, FreeSlot{ Start: cursor, End: a.StartTime })
+		}
+		if a.EndTime > cursor {
+			cursor = a.EndTime
+		}
+	}
+
+	if cursor < dayEnd {
+		freeSlots = append(freeSlots, FreeSlot{ Start: cursor, End: dayEnd })
+	}
+
+	return freeSlots, nil
 }
 
 func (s *Service) ListByDay(ctx context.Context, day string) ([]Activity, error) {

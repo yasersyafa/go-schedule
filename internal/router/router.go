@@ -8,7 +8,7 @@ import (
 func New(activityHandler *activity.Handler) *gin.Engine {
 	r := gin.Default()
 
-	api := r.Group("/api")
+	api := r.Group("/api/v1")
 	{
 		activities := api.Group("/activities")
 		{
@@ -19,6 +19,7 @@ func New(activityHandler *activity.Handler) *gin.Engine {
 		}
 
 		api.GET("/days/:day/activities", activityHandler.ListByDay)
+		api.GET("/days/:day/free-slots", activityHandler.ListFreeSlots)
 	}
 
 	return r

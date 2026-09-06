@@ -17,3 +17,8 @@ type Activity struct {
 	CreatedAt time.Time `db:"created_at"`
 	UpdatedAt time.Time `db:"updated_at"`
 }
+
+type FreeSlot struct {
+	Start string `json:"start"`
+	End string `json:"end"`
+}

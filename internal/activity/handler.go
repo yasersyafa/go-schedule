@@ -113,6 +113,17 @@ func (h *Handler) ListAll(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data":activities})
 }
 
+func (h *Handler) ListFreeSlots(c *gin.Context) {
+	day := c.Param("day")
+	slots, err := h.service.ListFreeSlots(c.Request.Context(), day)
+	if err != nil {
+		log.Printf("list free slots error: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to list free slots"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"data":slots})
+}
+
 func respondServiceError(c *gin.Context, err error) {
 	if errors.Is(err, ErrOverlap) {
 		c.JSON(http.StatusConflict, gin.H{"error": err.Error()})
