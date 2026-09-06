@@ -28,7 +28,7 @@ func (n *TelegramNotifier) Send(ctx context.Context, message string) error {
 
 	payload := map[string]string {
 		"chat_id": n.chatID,
-		"message": message,
+		"text": message,
 	}
 
 	body, err := json.Marshal(payload)
