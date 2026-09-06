@@ -83,7 +83,7 @@ func (s *Scheduler) checkDueActivities() {
 		}
 
 		if _, err := tx.ExecContext(ctx,
-			`INSERT INTO notification_logs (activity_id) VALUES ($1)`, a.ID,
+			`INSERT INTO notif_logs (activity_id) VALUES ($1)`, a.ID,
 		); err != nil {
 			log.Printf("failed to insert notification log for %s: %v", a.ID, err)
 			tx.Rollback()
