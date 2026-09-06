@@ -103,6 +103,16 @@ func (h *Handler) ListByDay(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data":activities})
 }
 
+func (h *Handler) ListAll(c *gin.Context) {
+	activities, err := h.service.ListAll(c.Request.Context())
+	if err != nil {
+		log.Printf("list all of activities: %v", err)
+		respondServiceError(c, err)
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"data":activities})
+}
+
 func respondServiceError(c *gin.Context, err error) {
 	if errors.Is(err, ErrOverlap) {
 		c.JSON(http.StatusConflict, gin.H{"error": err.Error()})

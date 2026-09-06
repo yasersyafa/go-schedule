@@ -18,6 +18,10 @@ func NewService(repo *Repository) *Service {
 	return &Service{repo: repo}
 }
 
+func (s *Service) ListAll(ctx context.Context) ([]Activity, error) {
+	return s.repo.ListAll(ctx)
+}
+
 func (s *Service) ListByDay(ctx context.Context, day string) ([]Activity, error) {
 	return s.repo.ListByDay(ctx, day)
 }

@@ -12,6 +12,7 @@ func New(activityHandler *activity.Handler) *gin.Engine {
 	{
 		activities := api.Group("/activities")
 		{
+			activities.GET("", activityHandler.ListAll)
 			activities.POST("", activityHandler.Create)
 			activities.PUT("/:id", activityHandler.Update)
 			activities.DELETE("/:id", activityHandler.Delete)
