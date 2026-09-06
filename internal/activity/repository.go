@@ -8,6 +8,11 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
+var activityColumns string = `
+	id, name, notes, day, start_time::text AS start_time,
+	end_time::text AS end_time, last_notified_date, created_at, updated_at
+`
+
 type Repository struct {
 	db *sqlx.DB
 }
@@ -19,7 +24,7 @@ func NewRepository(db *sqlx.DB) *Repository {
 func (r *Repository) ListAll(ctx context.Context) ([]Activity, error) {
 	var activities []Activity
 	query := `
-		SELECT * FROM activities
+		SELECT ` + activityColumns  + ` FROM activities
 		ORDER BY
 			CASE day
 				WHEN 'monday' THEN 1
@@ -41,7 +46,7 @@ func (r *Repository) ListAll(ctx context.Context) ([]Activity, error) {
 
 func (r *Repository) ListByDay(ctx context.Context, day string) ([]Activity, error) {
 	var activities []Activity
-	query := `SELECT * FROM activities WHERE day = $1 ORDER BY start_time`
+	query := `SELECT ` + activityColumns + ` FROM activities WHERE day = $1 ORDER BY start_time`
 	if err := r.db.SelectContext(ctx, &activities, query, day); err != nil {
 		return nil, fmt.Errorf("list activities by day: %w", err)
 	}
