@@ -2,6 +2,7 @@ package activity
 
 import (
 	"errors"
+	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -17,7 +18,7 @@ func NewHandler(service *Service) *Handler {
 }
 
 type activityRequest struct {
-	Name string	`json:"name" binding:"required, max=255"`
+	Name string	`json:"name" binding:"required,max=255"`
 	Notes *string `json:"notes"`
 	Day string `json:"day" binding:"required,oneof=monday tuesday wednesday thursday friday saturday sunday"`
 	StartTime string `json:"start_time" bidning:"required"`
@@ -95,6 +96,7 @@ func (h *Handler) ListByDay(c *gin.Context) {
 	day := c.Param("day")
 	activities, err := h.service.ListByDay(c.Request.Context(), day)
 	if err != nil {
+		log.Printf("list activities: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to list activities"})
 		return
 	}
@@ -106,5 +108,6 @@ func respondServiceError(c *gin.Context, err error) {
 		c.JSON(http.StatusConflict, gin.H{"error": err.Error()})
 		return
 	}
+	log.Printf("service error: %v", err)
 	c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to save activity"})
 }

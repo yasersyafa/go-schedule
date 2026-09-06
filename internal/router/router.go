@@ -10,7 +10,7 @@ func New(activityHandler *activity.Handler) *gin.Engine {
 
 	api := r.Group("/api")
 	{
-		activities := r.Group("/activities")
+		activities := api.Group("/activities")
 		{
 			activities.POST("", activityHandler.Create)
 			activities.PUT("/:id", activityHandler.Update)

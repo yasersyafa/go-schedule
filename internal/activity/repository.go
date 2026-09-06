@@ -35,7 +35,7 @@ func (r *Repository) HasOverlap(ctx context.Context, day, startTime, endTime str
 	)`
 
 	var exists bool
-	if err := r.db.SelectContext(ctx, &exists, query, day, startTime, endTime, excludeID); err != nil {
+	if err := r.db.GetContext(ctx, &exists, query, day, startTime, endTime, excludeID); err != nil {
 		return false, fmt.Errorf("check overlap: %w", err)
 	}
 
@@ -78,7 +78,7 @@ func (r *Repository) Update(ctx context.Context, a *Activity) error {
 }
 
 func (r *Repository) Delete(ctx context.Context, id uuid.UUID) error {
-	query := `DELETE FROM activities WHERE id = :id`
+	query := `DELETE FROM activities WHERE id = $1`
 	_, err := r.db.ExecContext(ctx, query, id)
 	if err != nil {
 		return fmt.Errorf("delete activity: %w", err)
