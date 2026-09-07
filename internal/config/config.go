@@ -12,6 +12,7 @@ type Config struct {
 	TelegramBotToken string
 	TelegramChatID string
 	Port string
+	Timezone string
 }
 
 func Load() *Config {
@@ -24,6 +25,7 @@ func Load() *Config {
 		TelegramBotToken: mustGet("TELEGRAM_BOT_TOKEN"),
 		TelegramChatID: mustGet("TELEGRAM_CHAT_ID"),
 		Port: getOr("PORT", "8080"),
+		Timezone: getOr("TZ", "Asia/Jakarta"),
 	}
 }
 

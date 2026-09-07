@@ -22,14 +22,20 @@ type Scheduler struct {
 	db *sqlx.DB
 	notifier *notifier.TelegramNotifier
 	cron *cron.Cron
+	loc *time.Location
 }
 
-func New(db *sqlx.DB, notifier *notifier.TelegramNotifier) *Scheduler {
+func New(db *sqlx.DB, notifier *notifier.TelegramNotifier, tz string) (*Scheduler, error) {
+	loc, err := time.LoadLocation(tz)
+	if err != nil {
+		return nil, fmt.Errorf("load timezone %q: %w", tz, err)
+	}
 	return &Scheduler{
 		db: db,
 		notifier: notifier,
-		cron: cron.New(),
-	}
+		cron: cron.New(cron.WithLocation(loc)),
+		loc: loc,
+	}, nil
 }
 
 func (s *Scheduler) Start() error {
@@ -44,19 +50,20 @@ func (s *Scheduler) Start() error {
 
 func (s *Scheduler) checkDueActivities() {
 	ctx := context.Background()
-	now := time.Now()
+	now := time.Now().In(s.loc)
 	currentDay := strings.ToLower(now.Weekday().String())
-	currentTime := now.Format("15:04:00")
+	currentTime := now.Format("15:04:05")
+	currentDate := now.Format("2006-01-02")
 
 	var activities []dueActivity
 	query := `
 		SELECT id, name FROM activities
 		WHERE day = $1
 		AND start_time::text = $2
-		AND (last_notified_date IS NULL OR last_notified_date != CURRENT_DATE)
+		AND (last_notified_date IS NULL OR last_notified_date != $3)
 	`
 
-	if err := s.db.SelectContext(ctx, &activities, query, currentDay, currentTime); err != nil {
+	if err := s.db.SelectContext(ctx, &activities, query, currentDay, currentTime, currentDate); err != nil {
 		log.Printf("scheduler query error: %v", err)
 		return
 	}
@@ -75,8 +82,8 @@ func (s *Scheduler) checkDueActivities() {
 		}
 
 		if _, err := tx.ExecContext(ctx, `
-			UPDATE activities SET last_notified_date = CURRENT_DATE WHERE id = $1
-		`, a.ID); err != nil {
+			UPDATE activities SET last_notified_date = $2 WHERE id = $1
+		`, a.ID, currentDate); err != nil {
 			log.Printf("failed to update last_notified_date for %s: %v", a.Name, err)
 			tx.Rollback()
 			continue

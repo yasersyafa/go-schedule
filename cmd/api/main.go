@@ -3,6 +3,8 @@ package main
 import (
 	"log"
 
+	_ "time/tzdata"
+
 	"github.com/yasersyafa/go-schedule/internal/activity"
 	"github.com/yasersyafa/go-schedule/internal/config"
 	"github.com/yasersyafa/go-schedule/internal/database"
@@ -25,7 +27,10 @@ func main() {
 	activityHandler := activity.NewHandler(activityService)
 
 	tgNotifier := notifier.NewTelegramNotifier(cfg.TelegramBotToken, cfg.TelegramChatID)
-	sched := scheduler.New(conn, tgNotifier)
+	sched, err := scheduler.New(conn, tgNotifier, cfg.Timezone)
+	if err != nil {
+		log.Fatalf("failed to init scheduler: %v", err)
+	}
 	if err := sched.Start(); err != nil {
 		log.Fatalf("failed to start scheduler: %v", err)
 	}
