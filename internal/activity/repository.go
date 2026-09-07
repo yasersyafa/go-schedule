@@ -22,7 +22,7 @@ func NewRepository(db *sqlx.DB) *Repository {
 }
 
 func (r *Repository) ListAll(ctx context.Context) ([]Activity, error) {
-	var activities []Activity
+	activities := []Activity{}
 	query := `
 		SELECT ` + activityColumns  + ` FROM activities
 		ORDER BY
@@ -45,7 +45,7 @@ func (r *Repository) ListAll(ctx context.Context) ([]Activity, error) {
 }
 
 func (r *Repository) ListByDay(ctx context.Context, day string) ([]Activity, error) {
-	var activities []Activity
+	activities := []Activity{}
 	query := `SELECT ` + activityColumns + ` FROM activities WHERE day = $1 ORDER BY start_time`
 	if err := r.db.SelectContext(ctx, &activities, query, day); err != nil {
 		return nil, fmt.Errorf("list activities by day: %w", err)

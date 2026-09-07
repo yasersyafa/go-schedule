@@ -32,7 +32,7 @@ func (s *Service) ListFreeSlots(ctx context.Context, day string) ([]FreeSlot, er
 		return nil, fmt.Errorf("list activities for free slots: %w", err)
 	}
 
-	var freeSlots []FreeSlot
+	freeSlots := []FreeSlot{}
 	cursor := dayStart
 
 	for _, a := range activities {
