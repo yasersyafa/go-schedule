@@ -69,7 +69,7 @@ func (s *Scheduler) checkDueActivities() {
 	}
 
 	for _, a := range activities {
-		message := fmt.Sprintf("Hii! Yuk sekarang jadwalnya: %s", a.Name)
+		message := fmt.Sprintf("sekarang jadwalnya %s nih! semangat yaa", a.Name)
 		if err := s.notifier.Send(ctx, message); err != nil {
 			log.Printf("failed to notify activity %s: %v", a.ID, err)
 			continue
