@@ -6,6 +6,7 @@ import (
 	_ "time/tzdata"
 
 	"github.com/yasersyafa/go-schedule/internal/activity"
+	"github.com/yasersyafa/go-schedule/internal/auth"
 	"github.com/yasersyafa/go-schedule/internal/config"
 	"github.com/yasersyafa/go-schedule/internal/database"
 	"github.com/yasersyafa/go-schedule/internal/notifier"
@@ -26,6 +27,9 @@ func main() {
 	activityService := activity.NewService(activityRepo)
 	activityHandler := activity.NewHandler(activityService)
 
+	// auth
+	authHandler := auth.NewHandler(cfg.AdminPassword, cfg.ApiToken)
+
 	tgNotifier := notifier.NewTelegramNotifier(cfg.TelegramBotToken, cfg.TelegramChatID)
 	sched, err := scheduler.New(conn, tgNotifier, cfg.Timezone)
 	if err != nil {
@@ -35,7 +39,7 @@ func main() {
 		log.Fatalf("failed to start scheduler: %v", err)
 	}
 
-	r := router.New(activityHandler)
+	r := router.New(activityHandler, authHandler, cfg.ApiToken)
 
 	log.Printf("server starting on port: %s", cfg.Port)
 	if err := r.Run(":" + cfg.Port); err != nil {

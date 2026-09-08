@@ -13,6 +13,8 @@ type Config struct {
 	TelegramChatID string
 	Port string
 	Timezone string
+	AdminPassword string
+	ApiToken string
 }
 
 func Load() *Config {
@@ -26,6 +28,8 @@ func Load() *Config {
 		TelegramChatID: mustGet("TELEGRAM_CHAT_ID"),
 		Port: getOr("PORT", "8080"),
 		Timezone: getOr("TZ", "Asia/Jakarta"),
+		AdminPassword: mustGet("ADMIN_PASSWORD"),
+		ApiToken: mustGet("API_TOKEN"),
 	}
 }
 
