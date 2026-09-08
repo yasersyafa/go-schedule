@@ -11,7 +11,7 @@ func New(activityHandler *activity.Handler) *gin.Engine {
 
 	// CORS setup
 	r.Use(cors.New(cors.Config{
-		AllowOrigins: []string{"http://localhost:3000", "https://localhost:5173"},
+		AllowOrigins: []string{"https://janeismine.netlify.app"},
 		AllowMethods: []string{"GET", "POST", "PUT", "PATCH", "DELETE"},
 		AllowHeaders: []string{"Content-Type"},
 		AllowCredentials: false,
