@@ -5,9 +5,10 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/yasersyafa/go-schedule/internal/activity"
 	"github.com/yasersyafa/go-schedule/internal/auth"
+	"github.com/yasersyafa/go-schedule/internal/line"
 )
 
-func New(activityHandler *activity.Handler, authHandler *auth.Handler, apiToken string) *gin.Engine {
+func New(activityHandler *activity.Handler, authHandler *auth.Handler, lineHandler *line.Handler, apiToken string) *gin.Engine {
 	r := gin.Default()
 
 	// CORS setup
@@ -21,6 +22,7 @@ func New(activityHandler *activity.Handler, authHandler *auth.Handler, apiToken 
 	api := r.Group("/api/v1")
 	{
 		api.POST("/auth/login", authHandler.Login)
+		api.POST("/line/webhook", lineHandler.Webhook)
 		
 		api.GET("/days/:day/activities", activityHandler.ListByDay)
 		api.GET("/days/:day/free-slots", activityHandler.ListFreeSlots)

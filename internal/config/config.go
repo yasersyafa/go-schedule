@@ -15,6 +15,8 @@ type Config struct {
 	Timezone string
 	AdminPassword string
 	ApiToken string
+	LineChannelSecret string
+	LineChannelToken string
 }
 
 func Load() *Config {
@@ -30,6 +32,8 @@ func Load() *Config {
 		Timezone: getOr("TZ", "Asia/Jakarta"),
 		AdminPassword: mustGet("ADMIN_PASSWORD"),
 		ApiToken: mustGet("API_TOKEN"),
+		LineChannelSecret: mustGet("LINE_CHANNEL_SECRET"),
+		LineChannelToken: mustGet("LINE_CHANNEL_TOKEN"),
 	}
 }
 
