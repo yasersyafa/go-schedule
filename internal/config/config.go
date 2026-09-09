@@ -17,6 +17,7 @@ type Config struct {
 	ApiToken string
 	LineChannelSecret string
 	LineChannelToken string
+	LineUserID string
 }
 
 func Load() *Config {
@@ -34,6 +35,7 @@ func Load() *Config {
 		ApiToken: mustGet("API_TOKEN"),
 		LineChannelSecret: mustGet("LINE_CHANNEL_SECRET"),
 		LineChannelToken: mustGet("LINE_CHANNEL_TOKEN"),
+		LineUserID: mustGet("LINE_USER_ID"),
 	}
 }
 
