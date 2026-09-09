@@ -48,9 +48,7 @@ func (h *Handler) Webhook(c *gin.Context) {
 	}
 
 	for _, event := range payload.Events {
-		if event.Type == "follow" {
-			log.Printf("LINE follow event - User ID kamu: %s", event.Source.UserID)
-		}
+		log.Printf("LINE event diterima. type: %s, User ID: %s", event.Type, event.Source.UserID)
 	}
 
 	c.Status(http.StatusOK)
