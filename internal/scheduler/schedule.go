@@ -62,7 +62,7 @@ func (s *Scheduler) checkDueActivities() {
 	}
 
 	for _, a := range activities {
-		message := fmt.Sprintf("sekarang jadwalnya %s nih! semangat yaa", a.Name)
+		message := pickMessage(a.Name)
 
 		sentToAny := false
 
