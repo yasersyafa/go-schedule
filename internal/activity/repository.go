@@ -114,3 +114,46 @@ func (r *Repository) Delete(ctx context.Context, id uuid.UUID) error {
 
 	return nil
 }
+
+func (r *Repository) ListDueNow(ctx context.Context, day, currentTime, currentDate string) ([]DueActivity, error) {
+	var activities []DueActivity
+
+	query := `
+		SELECT id, name FROM activities
+		WHERE day = $1
+		AND start_time::text = $2
+		AND (last_notified_date IS NULL OR last_notified_date != $3)
+	`
+
+	if err := r.db.SelectContext(ctx, &activities, query, day, currentTime, currentDate); err != nil {
+		return []DueActivity{}, fmt.Errorf("list due activity: %w", err)
+	}
+
+	return activities, nil
+}
+
+func (r *Repository) RecordNotification(ctx context.Context, activityID uuid.UUID, notifiedDate string) error {
+	tx, err := r.db.BeginTxx(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("begin transaction: %w", err)
+	}
+
+	if _, err := tx.ExecContext(ctx,
+		`UPDATE activities SET last_notified_date = $2 WHERE id = $1`, activityID, notifiedDate,
+	); err != nil {
+		tx.Rollback()
+		return fmt.Errorf("update last_notified_date: %w", err)
+	}
+
+	if _, err := tx.ExecContext(ctx,
+		`INSERT INTO notif_logs (activity_id) VALUES ($1)`, activityID,
+	); err != nil {
+		tx.Rollback()
+		return fmt.Errorf("insert notification log: %w", err)
+	}
+
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("commit transaction: %w", err)
+	}
+	return nil
+}

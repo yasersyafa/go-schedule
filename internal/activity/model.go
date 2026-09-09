@@ -22,3 +22,8 @@ type FreeSlot struct {
 	Start string `json:"start"`
 	End string `json:"end"`
 }
+
+type DueActivity struct {
+	ID uuid.UUID `json:"id"`
+	Name string `json:"name"`
+}

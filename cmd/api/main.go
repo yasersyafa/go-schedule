@@ -24,18 +24,21 @@ func main() {
 	}
 	defer conn.Close()
 
+	// ACTIVITY
 	activityRepo := activity.NewRepository(conn)
 	activityService := activity.NewService(activityRepo)
 	activityHandler := activity.NewHandler(activityService)
 
-	// auth
+	// AUTH
 	authHandler := auth.NewHandler(cfg.AdminPassword, cfg.ApiToken)
-
-	tgNotifier := notifier.NewTelegramNotifier(cfg.TelegramBotToken, cfg.TelegramChatID)
-	lineNotifier := notifier.NewLineNotifier(cfg.LineChannelToken, cfg.LineUserID)
 	lineHandler := line.NewHandler(cfg.LineChannelSecret)
 
-	sched, err := scheduler.New(conn, cfg.Timezone, tgNotifier, lineNotifier)
+	// NOTIFIER
+	tgNotifier := notifier.NewTelegramNotifier(cfg.TelegramBotToken, cfg.TelegramChatID)
+	lineNotifier := notifier.NewLineNotifier(cfg.LineChannelToken, cfg.LineUserID)
+
+	// SCHEDULER
+	sched, err := scheduler.New(activityRepo, cfg.Timezone, tgNotifier, lineNotifier)
 	if err != nil {
 		log.Fatalf("failed to init scheduler: %v", err)
 	}

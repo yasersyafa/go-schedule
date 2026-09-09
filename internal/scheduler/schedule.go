@@ -7,31 +7,31 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jmoiron/sqlx"
+	"github.com/google/uuid"
 	"github.com/robfig/cron/v3"
+	"github.com/yasersyafa/go-schedule/internal/activity"
 	"github.com/yasersyafa/go-schedule/internal/notifier"
 )
 
-
-type dueActivity struct {
-	ID string `db:"id"`
-	Name string `db:"name"`
+type schedulerRepository interface {
+	ListDueNow(ctx context.Context, day, currentTime, currentDate string)([]activity.DueActivity, error)
+	RecordNotification(ctx context.Context, activityID uuid.UUID, notifiedDate string) error
 }
 
 type Scheduler struct {
-	db *sqlx.DB
+	repo schedulerRepository
 	notifiers []notifier.Notifier
 	cron *cron.Cron
 	loc *time.Location
 }
 
-func New(db *sqlx.DB, tz string, notifiers ...notifier.Notifier) (*Scheduler, error) {
+func New(repo schedulerRepository, tz string, notifiers ...notifier.Notifier) (*Scheduler, error) {
 	loc, err := time.LoadLocation(tz)
 	if err != nil {
 		return nil, fmt.Errorf("load timezone %q: %w", tz, err)
 	}
 	return &Scheduler{
-		db: db,
+		repo: repo,
 		notifiers: notifiers,
 		cron: cron.New(cron.WithLocation(loc)),
 		loc: loc,
@@ -55,15 +55,8 @@ func (s *Scheduler) checkDueActivities() {
 	currentTime := now.Format("15:04:05")
 	currentDate := now.Format("2006-01-02")
 
-	var activities []dueActivity
-	query := `
-		SELECT id, name FROM activities
-		WHERE day = $1
-		AND start_time::text = $2
-		AND (last_notified_date IS NULL OR last_notified_date != $3)
-	`
-
-	if err := s.db.SelectContext(ctx, &activities, query, currentDay, currentTime, currentDate); err != nil {
+	activities, err := s.repo.ListDueNow(ctx, currentDay, currentTime, currentDate)
+	if err != nil {
 		log.Printf("scheduler query error: %v", err)
 		return
 	}
@@ -85,30 +78,8 @@ func (s *Scheduler) checkDueActivities() {
 			continue
 		}
 
-		tx, err := s.db.BeginTxx(ctx, nil)
-		if err != nil {
-			log.Printf("failed to begin tx for activity %s: %v", a.ID, err)
-			continue
-		}
-
-		if _, err := tx.ExecContext(ctx, `
-			UPDATE activities SET last_notified_date = $2 WHERE id = $1
-		`, a.ID, currentDate); err != nil {
-			log.Printf("failed to update last_notified_date for %s: %v", a.Name, err)
-			tx.Rollback()
-			continue
-		}
-
-		if _, err := tx.ExecContext(ctx,
-			`INSERT INTO notif_logs (activity_id) VALUES ($1)`, a.ID,
-		); err != nil {
-			log.Printf("failed to insert notification log for %s: %v", a.ID, err)
-			tx.Rollback()
-			continue
-		}
-
-		if err := tx.Commit(); err != nil {
-			log.Printf("failed to commit notification for %s: %v", a.ID, err)
+		if err := s.repo.RecordNotification(ctx, a.ID, currentDate); err != nil {
+			log.Printf("failed to to record notification for %s: %v", a.ID, err)
 		}
 	}
 }
