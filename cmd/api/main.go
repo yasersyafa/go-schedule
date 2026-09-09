@@ -32,8 +32,10 @@ func main() {
 	authHandler := auth.NewHandler(cfg.AdminPassword, cfg.ApiToken)
 
 	tgNotifier := notifier.NewTelegramNotifier(cfg.TelegramBotToken, cfg.TelegramChatID)
+	lineNotifier := notifier.NewLineNotifier(cfg.LineChannelToken, cfg.LineUserID)
 	lineHandler := line.NewHandler(cfg.LineChannelSecret)
-	sched, err := scheduler.New(conn, tgNotifier, cfg.Timezone)
+
+	sched, err := scheduler.New(conn, cfg.Timezone, tgNotifier, lineNotifier)
 	if err != nil {
 		log.Fatalf("failed to init scheduler: %v", err)
 	}

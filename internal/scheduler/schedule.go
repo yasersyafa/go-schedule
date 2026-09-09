@@ -20,19 +20,19 @@ type dueActivity struct {
 
 type Scheduler struct {
 	db *sqlx.DB
-	notifier *notifier.TelegramNotifier
+	notifiers []notifier.Notifier
 	cron *cron.Cron
 	loc *time.Location
 }
 
-func New(db *sqlx.DB, notifier *notifier.TelegramNotifier, tz string) (*Scheduler, error) {
+func New(db *sqlx.DB, tz string, notifiers ...notifier.Notifier) (*Scheduler, error) {
 	loc, err := time.LoadLocation(tz)
 	if err != nil {
 		return nil, fmt.Errorf("load timezone %q: %w", tz, err)
 	}
 	return &Scheduler{
 		db: db,
-		notifier: notifier,
+		notifiers: notifiers,
 		cron: cron.New(cron.WithLocation(loc)),
 		loc: loc,
 	}, nil
@@ -70,8 +70,18 @@ func (s *Scheduler) checkDueActivities() {
 
 	for _, a := range activities {
 		message := fmt.Sprintf("sekarang jadwalnya %s nih! semangat yaa", a.Name)
-		if err := s.notifier.Send(ctx, message); err != nil {
-			log.Printf("failed to notify activity %s: %v", a.ID, err)
+
+		sentToAny := false
+
+		for _, n := range s.notifiers {
+			if err := n.Send(ctx, message); err != nil {
+				log.Printf("failed to notify activity %s via one channel: %v", a.ID, err)
+				continue
+			}
+			sentToAny = true
+		}
+
+		if !sentToAny {
 			continue
 		}
 
